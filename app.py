@@ -9,6 +9,7 @@ from ultralytics import YOLO
 import cv2
 import numpy as np
 from typing import List
+from datetime import datetime
 
 app = FastAPI()
 
@@ -99,6 +100,23 @@ def list_sorted_by_mtime(dir_path: str, prefix: str = "") -> List[str]:
     files.sort(key=lambda x: os.path.getmtime(os.path.join(dir_path, x)))
     return files
 
+# 🔹 helper: save mammography boxes to CSV
+def save_mammo_boxes_to_csv(patientId: str, boxes: np.ndarray):
+    patient_dir = os.path.join(UPLOAD_DIR, patientId, "mammography")
+    ensure_dir(patient_dir)
+    csv_path = os.path.join(patient_dir, f"{patientId}_mammography.csv")
+
+    file_exists = os.path.exists(csv_path)
+    with open(csv_path, mode="a", newline="") as f:
+        writer = csv.writer(f)
+        if not file_exists:
+            writer.writerow(["timestamp", "x1", "y1", "x2", "y2"])
+        timestamp = datetime.now().isoformat()
+        for box in boxes:
+            x1, y1, x2, y2 = box[:4]
+            writer.writerow([timestamp, float(x1), float(y1), float(x2), float(y2)])
+
+
 @app.post("/predict")
 async def predict(
     file: UploadFile,
@@ -141,6 +159,7 @@ async def predict(
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
 
+
 @app.post("/predict-mammography")
 async def predict_mammography(
     file: UploadFile,
@@ -156,6 +175,9 @@ async def predict_mammography(
         result = results_list[0]
         boxes = to_numpy_boxes(result)
         is_cancerous = any(int(cls) in CANCER_CLASSES for cls in boxes[:, 5].tolist()) if boxes.size else False
+
+        # 🔹 save detections into patient-specific CSV
+        save_mammo_boxes_to_csv(patientId, boxes)
 
         annotated_img = result.plot()
         annotated_file_name = "annotated_" + os.path.basename(file.filename)
@@ -190,6 +212,7 @@ async def predict_mammography(
         }
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
+
 
 @app.get("/latest-image/{patientId}")
 async def latest_image(patientId: str):
