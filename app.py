@@ -7,16 +7,14 @@ from PIL import Image
 
 app = FastAPI()
 
-# Allow CORS so frontend can communicate
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["*"],  # Replace * with your frontend URL in production
+    allow_origins=["*"],
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
 )
 
-# Load YOLO model once at startup
 model = YOLO("/home/zaman/Code/Cancer_Detection_System/runs/detect/train7/weights/best.pt")
 
 @app.post("/predict")
@@ -29,11 +27,9 @@ async def predict(
     height: float = Form(...)
 ):
     try:
-        
         image_bytes = await file.read()
         img = Image.open(BytesIO(image_bytes)).convert("RGB")
 
-    
         results = model.predict(img, imgsz=640, device=0)
 
         predictions = []
@@ -49,10 +45,8 @@ async def predict(
                     "bbox": [x1, y1, x2, y2]
                 })
 
-        
-        is_cancerous = any(pred["class"] == 0 for pred in predictions)
-
-
+        cancer_classes = {0, 1, 2}
+        is_cancerous = any(pred["class"] in cancer_classes for pred in predictions)
 
         return JSONResponse(content={
             "patientId": patientId,
