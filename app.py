@@ -225,3 +225,15 @@ async def latest_image(patientId: str):
         return JSONResponse({"imageUrl": f"/uploads/{patientId}/mammography/{latest}"})
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
+
+@app.get("/latest-biopsy-image/{patientId}")
+async def latest_biopsy_image(patientId: str):
+    try:
+        biopsy_dir = os.path.join(UPLOAD_DIR, patientId, "biopsy")
+        files = list_sorted_by_mtime(biopsy_dir)
+        if not files:
+            return JSONResponse({"imageUrl": None})
+        latest = files[-1]
+        return JSONResponse({"imageUrl": f"/uploads/{patientId}/biopsy/{latest}"})
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))

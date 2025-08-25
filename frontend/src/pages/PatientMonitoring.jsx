@@ -5,7 +5,8 @@ import { useNavigate } from 'react-router-dom';
 const PatientMonitoring = () => {
   const [patientId, setPatientId] = useState('');
   const [image, setImage] = useState(null);
-  const [prevImage, setPrevImage] = useState(null);
+  const [latestBiopsy, setLatestBiopsy] = useState(null);
+  const [latestMammo, setLatestMammo] = useState(null);
   const [results, setResults] = useState(null);
   const [error, setError] = useState(null);
   const [loading, setLoading] = useState(false);
@@ -32,25 +33,27 @@ const PatientMonitoring = () => {
     }
   };
 
-  const fetchPreviousImage = async () => {
+  // Fetch latest annotated biopsy + mammography images
+  const fetchAnnotatedImages = async () => {
     if (!patientId) return;
+
     try {
-      const response = await axios.get(
-        `http://localhost:8000/latest-image/${patientId}`
-      );
-      if (response.data?.imageUrl) {
-        setPrevImage(response.data.imageUrl);
-      } else {
-        setPrevImage(null);
-      }
+      const [biopsyRes, mammoRes] = await Promise.all([
+        axios.get(`http://localhost:8000/latest-image/${patientId}?type=biopsy`),
+        axios.get(`http://localhost:8000/latest-image/${patientId}?type=mammography`)
+      ]);
+
+      setLatestBiopsy(biopsyRes.data?.imageUrl || null);
+      setLatestMammo(mammoRes.data?.imageUrl || null);
     } catch (err) {
       console.error(err);
-      setPrevImage(null);
+      setLatestBiopsy(null);
+      setLatestMammo(null);
     }
   };
 
   useEffect(() => {
-    if (patientId) fetchPreviousImage();
+    if (patientId) fetchAnnotatedImages();
   }, [patientId]);
 
   const handleSubmit = async () => {
@@ -79,7 +82,8 @@ const PatientMonitoring = () => {
         }
       );
 
-      setResults(response.data); // { is_cancerous, iou, change_in_area, etc. }
+      setResults(response.data);
+      fetchAnnotatedImages(); // Refresh after upload
     } catch (err) {
       console.error(err);
       setError(
@@ -126,13 +130,25 @@ const PatientMonitoring = () => {
           <div className="text-xs text-gray-500 mt-2">JPEG/PNG only</div>
         </div>
 
-        {/* Previous Image Section */}
-        {prevImage && (
+        {/* Latest Annotated Biopsy */}
+        {latestBiopsy && (
           <div>
-            <div className="mb-3 font-semibold">Previous Mammography Image</div>
+            <div className="mb-3 font-semibold">Latest Annotated Biopsy</div>
             <img
-              src={prevImage}
-              alt="Previous"
+              src={`http://localhost:8000${latestBiopsy}`}
+              alt="Biopsy"
+              className="max-h-72 max-w-full object-contain rounded-lg border"
+            />
+          </div>
+        )}
+
+        {/* Latest Annotated Mammography */}
+        {latestMammo && (
+          <div>
+            <div className="mb-3 font-semibold">Latest Annotated Mammography</div>
+            <img
+              src={`http://localhost:8000${latestMammo}`}
+              alt="Mammography"
               className="max-h-72 max-w-full object-contain rounded-lg border"
             />
           </div>
