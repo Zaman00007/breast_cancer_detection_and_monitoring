@@ -68,3 +68,5 @@ venv/
 .env.*
 secrets.json
 config.json
+package.json
+package-lock.json
