@@ -63,6 +63,7 @@ Cancer.v1i.yolov8/
 cancer-bancer.v1i.yolov8/
 venv/
 uploads/
+predict/
 
 # Environment/Secrets
 *.env
