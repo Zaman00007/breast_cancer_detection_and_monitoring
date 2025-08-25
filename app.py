@@ -1,61 +1,49 @@
-from fastapi import FastAPI, File, UploadFile, Form
-from fastapi.responses import JSONResponse
+from fastapi import FastAPI, UploadFile, Form, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
-from ultralytics import YOLO
-from io import BytesIO
-from PIL import Image
+import os
+import shutil
+import csv
 
 app = FastAPI()
 
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["*"],
+    allow_origins=["*"],  
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
 )
 
-model = YOLO("/home/zaman/Code/Cancer_Detection_System/runs/detect/train7/weights/best.pt")
+UPLOAD_DIR = "uploads"
+CSV_FILE = "patients.csv"
+
+if not os.path.exists(CSV_FILE):
+    with open(CSV_FILE, mode="w", newline="") as f:
+        writer = csv.writer(f)
+        writer.writerow(["patient_id", "name", "age", "weight", "height", "biopsy_file", "is_cancerous"])
 
 @app.post("/predict")
 async def predict(
-    file: UploadFile = File(...),
+    file: UploadFile,
     patientId: str = Form(...),
     name: str = Form(...),
-    age: int = Form(...),
-    weight: float = Form(...),
-    height: float = Form(...)
+    age: str = Form(...),
+    weight: str = Form(...),
+    height: str = Form(...),
 ):
     try:
-        image_bytes = await file.read()
-        img = Image.open(BytesIO(image_bytes)).convert("RGB")
+        patient_dir = os.path.join(UPLOAD_DIR, patientId, "biopsy")
+        os.makedirs(patient_dir, exist_ok=True)
 
-        results = model.predict(img, imgsz=640, device=0)
+        file_path = os.path.join(patient_dir, file.filename)
+        with open(file_path, "wb") as buffer:
+            shutil.copyfileobj(file.file, buffer)
+        is_cancerous = True  
+        with open(CSV_FILE, mode="a", newline="") as f:
+            writer = csv.writer(f)
+            writer.writerow([patientId, name, age, weight, height, file.filename, "Yes" if is_cancerous else "No"])
 
-        predictions = []
-        for r in results:
-            boxes = r.boxes
-            for box in boxes:
-                x1, y1, x2, y2 = box.xyxy[0].tolist()
-                conf = float(box.conf[0])
-                cls = int(box.cls[0])
-                predictions.append({
-                    "class": cls,
-                    "confidence": conf,
-                    "bbox": [x1, y1, x2, y2]
-                })
+        return {"patient_id": patientId, "is_cancerous": is_cancerous}
 
-        cancer_classes = {0, 1, 2}
-        is_cancerous = any(pred["class"] in cancer_classes for pred in predictions)
-
-        return JSONResponse(content={
-            "patientId": patientId,
-            "name": name,
-            "age": age,
-            "weight": weight,
-            "height": height,
-            "is_cancerous": is_cancerous,
-            "predictions": predictions
-        })
     except Exception as e:
-        return JSONResponse(status_code=500, content={"error": str(e)})
+        raise HTTPException(status_code=500, detail=str(e))
