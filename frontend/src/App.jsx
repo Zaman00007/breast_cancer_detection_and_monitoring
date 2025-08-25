@@ -3,13 +3,15 @@ import { useEffect } from 'react'
 import Navbar from './components/Navbar'
 import Home from './pages/Home'
 import AddPatient from './pages/AddPatient'
+import PatientMonitoring from './pages/PatientMonitoring'
 
 export default function App() {
   const nav = useNavigate()
-  // useEffect(()=>{
+  // useEffect(() => {
   //   const t = localStorage.getItem('token')
-  //   if(!t) nav('/login')
-  // },[])
+  //   if (!t) nav('/login')
+  // }, [])
+
   return (
     <div className="min-h-screen">
       <Navbar />
@@ -17,6 +19,7 @@ export default function App() {
         <Routes>
           <Route path="/" element={<Home />} />
           <Route path="/add" element={<AddPatient />} />
+          <Route path="/monitor/:patientId" element={<PatientMonitoring />} />
           {/* <Route path="*" element={<Outlet />} /> */}
         </Routes>
       </div>
