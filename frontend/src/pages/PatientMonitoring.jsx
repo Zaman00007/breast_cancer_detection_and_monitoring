@@ -33,13 +33,12 @@ const PatientMonitoring = () => {
     }
   };
 
-  // Fetch latest annotated biopsy + mammography images
   const fetchAnnotatedImages = async () => {
     if (!patientId) return;
 
     try {
       const [biopsyRes, mammoRes] = await Promise.all([
-        axios.get(`http://localhost:8000/latest-image/${patientId}?type=biopsy`),
+        axios.get(`http://localhost:8000/latest-biopsy-image/${patientId}`),
         axios.get(`http://localhost:8000/latest-image/${patientId}?type=mammography`)
       ]);
 
@@ -131,7 +130,7 @@ const PatientMonitoring = () => {
         </div>
 
         {/* Latest Annotated Biopsy */}
-        {latestBiopsy && (
+        {latestBiopsy ? (
           <div>
             <div className="mb-3 font-semibold">Latest Annotated Biopsy</div>
             <img
@@ -140,10 +139,12 @@ const PatientMonitoring = () => {
               className="max-h-72 max-w-full object-contain rounded-lg border"
             />
           </div>
+        ) : (
+          <div className="text-gray-500 italic">No biopsy image available</div>
         )}
 
         {/* Latest Annotated Mammography */}
-        {latestMammo && (
+        {latestMammo ? (
           <div>
             <div className="mb-3 font-semibold">Latest Annotated Mammography</div>
             <img
@@ -152,6 +153,8 @@ const PatientMonitoring = () => {
               className="max-h-72 max-w-full object-contain rounded-lg border"
             />
           </div>
+        ) : (
+          <div className="text-gray-500 italic">No mammography image available</div>
         )}
 
         <button
@@ -191,8 +194,7 @@ const PatientMonitoring = () => {
             )}
             {results.change_in_area !== undefined && (
               <div>
-                <span className="font-semibold">Change in Area:</span>{' '}
-                {results.change_in_area}%
+                <span className="font-semibold">Change in Area:</span> {results.change_in_area}%
               </div>
             )}
           </div>
