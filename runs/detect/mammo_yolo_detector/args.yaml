@@ -1,7 +1,7 @@
 task: detect
 mode: train
 model: yolov8n.pt
-data: /home/zaman/Code/Breast_Cancer_Detection_and_Monitoring/cancer-bancer.v1i.yolov8/data.yaml
+data: /home/zaman/Code/Cancer_Detection_System/cancer-bancer.v1i.yolov8/data.yaml
 epochs: 100
 time: null
 patience: 100
