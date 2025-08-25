@@ -62,6 +62,7 @@ out/
 Cancer.v1i.yolov8/
 cancer-bancer.v1i.yolov8/
 venv/
+uploads/
 
 # Environment/Secrets
 *.env
