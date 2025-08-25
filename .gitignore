@@ -1,0 +1,70 @@
+# Python
+__pycache__/
+*.py[cod]
+*.so
+*.egg
+*.egg-info/
+dist/
+build/
+.eggs/
+.env
+.venv
+venv/
+env/
+
+# IDEs
+.vscode/
+.idea/
+*.swp
+
+# OS files
+.DS_Store
+Thumbs.db
+
+# Jupyter
+.ipynb_checkpoints/
+*.ipynb_checkpoints
+
+# Logs
+*.log
+logs/
+wandb/
+tensorboard/
+*.out
+
+# Models and weights
+*.h5
+*.ckpt
+*.pth
+*.pt
+checkpoints/
+models/
+
+# Datasets
+data/
+datasets/
+*.zip
+*.tar
+*.tar.gz
+*.csv
+*.tsv
+
+# Reports
+*.pdf
+*.docx
+
+# Node/Frontend (if using React/Next.js for dashboard)
+node_modules/
+npm-debug.log
+yarn-error.log
+.next/
+out/
+Cancer.v1i.yolov8/
+cancer-bancer.v1i.yolov8/
+venv/
+
+# Environment/Secrets
+*.env
+.env.*
+secrets.json
+config.json
