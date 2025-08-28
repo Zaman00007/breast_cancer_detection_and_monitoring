@@ -10,6 +10,7 @@ import cv2
 import numpy as np
 from typing import List
 from datetime import datetime
+import pandas as pd
 
 app = FastAPI()
 
@@ -303,3 +304,10 @@ async def patient_analysis(patientId: str):
         }
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
+
+@app.get("/patients/recent")
+def get_recent_patients():
+    df = pd.read_csv("/home/zaman/Code/Breast_Cancer_Detection_and_Monitoring/patients.csv")
+    latest = df.tail(4).to_dict(orient="records")  
+    return latest
+
