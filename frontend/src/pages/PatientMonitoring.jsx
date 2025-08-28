@@ -181,11 +181,50 @@ const PatientMonitoring = () => {
           className="input mb-4"
         />
 
-        {(results || analysis) && (
-          <div className="space-y-3 text-sm md:text-base">
-            {/* ... display results & analysis as before ... */}
-          </div>
-        )}
+        {results && (
+              <div>
+                <span className="font-semibold">Has Cancer:</span>{' '}
+                {results.is_cancerous ? 'Yes' : 'No'}
+              </div>
+            )}
+
+            {analysis && (
+              <>
+                <div>
+                  <span className="font-semibold">Change in Area:</span>{' '}
+                  {analysis.change_in_area_percent?.toFixed(2)} %
+                </div>
+                <div>
+                  <span className="font-semibold">IoU:</span>{' '}
+                  {analysis.iou ? analysis.iou.toFixed(3) : 'N/A'}
+                </div>
+                <div>
+                  <span className="font-semibold">Aspect Ratio:</span>{' '}
+                  Prev: {analysis.aspect_ratios?.previous?.toFixed(3)} | Last:{' '}
+                  {analysis.aspect_ratios?.last?.toFixed(3)}
+                </div>
+                <div>
+                  <span className="font-semibold">Diameter:</span>{' '}
+                  Prev: {analysis.diameters?.previous?.toFixed(2)} px | Last:{' '}
+                  {analysis.diameters?.last?.toFixed(2)} px
+                </div>
+                <div>
+                  <span className="font-semibold">Centroid Shift:</span>{' '}
+                  {analysis.centroid_shift?.toFixed(2)} px
+                </div>
+                {analysis.centroids && (
+                  <div>
+                    <span className="font-semibold">Centroids:</span>{' '}
+                    Prev: ({analysis.centroids.previous[0].toFixed(1)}, {analysis.centroids.previous[1].toFixed(1)}) | Last:{' '}
+                    ({analysis.centroids.last[0].toFixed(1)}, {analysis.centroids.last[1].toFixed(1)})
+                  </div>
+                )}
+                <div className="text-xs text-gray-500 mt-2">
+                  Last Scan: {analysis.last_timestamp} <br />
+                  Previous Scan: {analysis.prev_timestamp}
+                </div>
+              </>
+            )}
 
         <button
           className="btn-secondary w-full mt-4"
