@@ -311,3 +311,18 @@ def get_recent_patients():
     latest = df.tail(4).to_dict(orient="records")  
     return latest
 
+@app.get("/patients")
+def get_patients(patient_id: str = None):
+    try:
+        df = pd.read_csv(CSV_FILE)
+
+        # If no search param → return all
+        if not patient_id:
+            return df.to_dict(orient="records")
+
+        # Filter by patient_id (exact match or partial match if needed)
+        results = df[df["patient_id"].astype(str).str.contains(str(patient_id), case=False, na=False)]
+
+        return results.to_dict(orient="records")
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))

@@ -27,12 +27,13 @@ export default function Home() {
     setMsg('')
     try {
       const r = await axios.get('http://localhost:8000/patients', {
-        params: { search: q }
+        params: { patient_id: q }   // 🔹 use patient_id instead of search
       })
       setResults(r.data)
       if (q && r.data.length === 0) setMsg('No patient record found')
     } catch (err) {
       console.error("Search failed:", err)
+      setMsg('Search failed. Please try again.')
     }
   }
 
@@ -42,15 +43,19 @@ export default function Home() {
         <form onSubmit={search} className="flex w-full gap-3">
           <input
             className="input flex-[7]"
-            placeholder="Search patient by name"
+            placeholder="Search patient by ID"
             value={q}
             onChange={e => setQ(e.target.value)}
           />
-          <Link to="/add" className="btn-primary flex-[3] text-center">
-            Add New Patient
-          </Link>
-        </form>
-      </div>
+          <button
+            type="submit"
+            className="btn-primary flex-[3] text-center"
+          >
+      Search
+    </button>
+  </form>
+</div>
+
 
       <div className="mt-6">
         {q ? (
