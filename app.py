@@ -308,7 +308,7 @@ async def patient_analysis(patientId: str):
 @app.get("/patients/recent")
 def get_recent_patients():
     df = pd.read_csv("/home/zaman/Code/Breast_Cancer_Detection_and_Monitoring/patients.csv")
-    latest = df.tail(4).to_dict(orient="records")  
+    latest = df.tail(6).to_dict(orient="records")  
     return latest
 
 @app.get("/patients")
