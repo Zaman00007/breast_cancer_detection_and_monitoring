@@ -20,12 +20,12 @@ export default function Navbar() {
         <div className="flex items-center gap-3">
           <Link to="/home" className="text-muted hover:text-text">Home</Link>
           <Link to="/add" className="btn-primary">Add Patient</Link>
-          <button 
+          {/* <button 
             onClick={logout} 
             className="rounded-xl px-3 py-2 border border-primary/30 hover:bg-primary/10"
           >
             Logout
-          </button>
+          </button> */}
         </div>
       </div>
     </div>
