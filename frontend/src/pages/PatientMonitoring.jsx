@@ -7,7 +7,8 @@ const PatientMonitoring = () => {
   const [image, setImage] = useState(null);
   const [latestBiopsy, setLatestBiopsy] = useState(null);
   const [latestMammo, setLatestMammo] = useState(null);
-  const [results, setResults] = useState(null);
+  const [results, setResults] = useState(null); // predict-mammography response
+  const [analysis, setAnalysis] = useState(null); // patient-analysis response
   const [error, setError] = useState(null);
   const [loading, setLoading] = useState(false);
   const navigate = useNavigate();
@@ -51,8 +52,22 @@ const PatientMonitoring = () => {
     }
   };
 
+  const fetchAnalysis = async () => {
+    if (!patientId) return;
+    try {
+      const res = await axios.get(`http://localhost:8000/patient-analysis/${patientId}`);
+      setAnalysis(res.data);
+    } catch (err) {
+      console.error(err);
+      setAnalysis(null);
+    }
+  };
+
   useEffect(() => {
-    if (patientId) fetchAnnotatedImages();
+    if (patientId) {
+      fetchAnnotatedImages();
+      fetchAnalysis();
+    }
   }, [patientId]);
 
   const handleSubmit = async () => {
@@ -82,7 +97,8 @@ const PatientMonitoring = () => {
       );
 
       setResults(response.data);
-      fetchAnnotatedImages(); // Refresh after upload
+      fetchAnnotatedImages(); 
+      fetchAnalysis(); // refresh analysis after upload
     } catch (err) {
       console.error(err);
       setError(
@@ -171,7 +187,7 @@ const PatientMonitoring = () => {
         )}
       </div>
 
-      {/* Right Panel - Results */}
+      {/* Right Panel - Results & Analysis */}
       <div className="card p-4 flex flex-col justify-between">
         <input
           name="patientId"
@@ -181,21 +197,51 @@ const PatientMonitoring = () => {
           className="input mb-4"
         />
 
-        {results && (
-          <div className="space-y-3">
-            <div>
-              <span className="font-semibold">Has Cancer:</span>{' '}
-              {results.is_cancerous ? 'Yes' : 'No'}
-            </div>
-            {results.iou !== undefined && (
+        {(results || analysis) && (
+          <div className="space-y-3 text-sm md:text-base">
+            {results && (
               <div>
-                <span className="font-semibold">IoU:</span> {results.iou}
+                <span className="font-semibold">Has Cancer:</span>{' '}
+                {results.is_cancerous ? 'Yes' : 'No'}
               </div>
             )}
-            {results.change_in_area !== undefined && (
-              <div>
-                <span className="font-semibold">Change in Area:</span> {results.change_in_area}%
-              </div>
+
+            {analysis && (
+              <>
+                <div>
+                  <span className="font-semibold">Change in Area:</span>{' '}
+                  {analysis.change_in_area_percent?.toFixed(2)} %
+                </div>
+                <div>
+                  <span className="font-semibold">IoU:</span>{' '}
+                  {analysis.iou ? analysis.iou.toFixed(3) : 'N/A'}
+                </div>
+                <div>
+                  <span className="font-semibold">Aspect Ratio:</span>{' '}
+                  Prev: {analysis.aspect_ratios?.previous?.toFixed(3)} | Last:{' '}
+                  {analysis.aspect_ratios?.last?.toFixed(3)}
+                </div>
+                <div>
+                  <span className="font-semibold">Diameter:</span>{' '}
+                  Prev: {analysis.diameters?.previous?.toFixed(2)} px | Last:{' '}
+                  {analysis.diameters?.last?.toFixed(2)} px
+                </div>
+                <div>
+                  <span className="font-semibold">Centroid Shift:</span>{' '}
+                  {analysis.centroid_shift?.toFixed(2)} px
+                </div>
+                {analysis.centroids && (
+                  <div>
+                    <span className="font-semibold">Centroids:</span>{' '}
+                    Prev: ({analysis.centroids.previous[0].toFixed(1)}, {analysis.centroids.previous[1].toFixed(1)}) | Last:{' '}
+                    ({analysis.centroids.last[0].toFixed(1)}, {analysis.centroids.last[1].toFixed(1)})
+                  </div>
+                )}
+                <div className="text-xs text-gray-500 mt-2">
+                  Last Scan: {analysis.last_timestamp} <br />
+                  Previous Scan: {analysis.prev_timestamp}
+                </div>
+              </>
             )}
           </div>
         )}

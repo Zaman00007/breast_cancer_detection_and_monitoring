@@ -159,7 +159,6 @@ async def predict(
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
 
-
 @app.post("/predict-mammography")
 async def predict_mammography(
     file: UploadFile,
@@ -235,5 +234,72 @@ async def latest_biopsy_image(patientId: str):
             return JSONResponse({"imageUrl": None})
         latest = files[-1]
         return JSONResponse({"imageUrl": f"/uploads/{patientId}/biopsy/{latest}"})
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(ecc))
+
+@app.get("/patient-analysis/{patientId}")
+async def patient_analysis(patientId: str):
+    try:
+        csv_path = os.path.join(UPLOAD_DIR, patientId, "mammography", f"{patientId}_mammography.csv")
+        if not os.path.exists(csv_path):
+            return JSONResponse({"detail": "No mammography records found"}, status_code=404)
+
+        with open(csv_path, mode="r") as f:
+            reader = list(csv.reader(f))
+            rows = reader[1:]  # skip header
+
+        if len(rows) < 2:
+            return JSONResponse({"detail": "Not enough records to compare"}, status_code=400)
+
+        last_row, prev_row = rows[-1], rows[-2]
+
+        def row_to_box(row):
+            return [float(row[1]), float(row[2]), float(row[3]), float(row[4])]
+
+        last_box, prev_box = row_to_box(last_row), row_to_box(prev_row)
+
+        def compute_metrics(box):
+            x1, y1, x2, y2 = box
+            w, h = max(0, x2 - x1), max(0, y2 - y1)
+            area = w * h
+            aspect_ratio = w / h if h > 0 else None
+            diameter = (w**2 + h**2) ** 0.5
+            cx, cy = (x1 + x2) / 2, (y1 + y2) / 2
+            return area, aspect_ratio, diameter, (cx, cy)
+
+        last_area, last_ar, last_d, last_centroid = compute_metrics(last_box)
+        prev_area, prev_ar, prev_d, prev_centroid = compute_metrics(prev_box)
+
+        change_in_area = ((last_area - prev_area) / prev_area * 100.0) if prev_area > 0 else None
+
+        def compute_iou(a, b):
+            ax1, ay1, ax2, ay2 = a
+            bx1, by1, bx2, by2 = b
+            xA, yA = max(ax1, bx1), max(ay1, by1)
+            xB, yB = min(ax2, bx2), min(ay2, by2)
+            inter = max(0, xB - xA) * max(0, yB - yA)
+            areaA, areaB = (ax2 - ax1) * (ay2 - ay1), (bx2 - bx1) * (by2 - by1)
+            denom = areaA + areaB - inter
+            return inter / denom if denom > 0 else None
+
+        iou = compute_iou(last_box, prev_box)
+
+        # Centroid shift
+        centroid_shift = ((last_centroid[0] - prev_centroid[0])**2 + 
+                          (last_centroid[1] - prev_centroid[1])**2) ** 0.5
+
+        return {
+            "patient_id": patientId,
+            "last_timestamp": last_row[0],
+            "prev_timestamp": prev_row[0],
+            "last_box": last_box,
+            "prev_box": prev_box,
+            "change_in_area_percent": change_in_area,
+            "aspect_ratios": {"last": last_ar, "previous": prev_ar},
+            "diameters": {"last": last_d, "previous": prev_d},
+            "iou": iou,
+            "centroid_shift": centroid_shift,
+            "centroids": {"last": last_centroid, "previous": prev_centroid}
+        }
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
