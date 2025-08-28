@@ -3,8 +3,8 @@ import axios from 'axios';
 import { useNavigate, useParams } from 'react-router-dom';
 
 const PatientMonitoring = () => {
-  const { patientId: paramId } = useParams(); // Get patientId from URL
-  const [patientId, setPatientId] = useState(paramId || ''); // initialize state with param
+  const { patientId: paramId } = useParams();
+  const [patientId, setPatientId] = useState(paramId || '');
   const [image, setImage] = useState(null);
   const [latestBiopsy, setLatestBiopsy] = useState(null);
   const [latestMammo, setLatestMammo] = useState(null);
@@ -17,7 +17,7 @@ const PatientMonitoring = () => {
   const handleImageChange = (e) => {
     if (e.target.files && e.target.files[0]) {
       const file = e.target.files[0];
-      const validTypes = ['image/jpeg', 'image/jpg', 'image/png', 'image/bmp', 'image/tiff', 'image/gif'];
+      const validTypes = ['image/jpeg','image/jpg','image/png','image/bmp','image/tiff','image/gif'];
       if (!validTypes.includes(file.type)) {
         setError('Invalid file type. Please upload a valid image.');
         setImage(null);
@@ -71,7 +71,6 @@ const PatientMonitoring = () => {
       setError('Please upload a mammography image.');
       return;
     }
-
     setLoading(true);
     setError(null);
 
@@ -105,8 +104,8 @@ const PatientMonitoring = () => {
         <div>
           <div className="mb-3 font-semibold">Upload Mammography Image</div>
           <label
-            className="border-2 border-dashed border-gray-400 rounded-lg p-6 flex flex-col items-center justify-center cursor-pointer hover:border-purple-500 h-72"
             htmlFor="fileInput"
+            className="border-2 border-dashed border-gray-400 rounded-lg p-6 flex flex-col items-center justify-center cursor-pointer hover:border-purple-500 h-72"
           >
             {!image ? (
               <>
@@ -135,9 +134,9 @@ const PatientMonitoring = () => {
           <div>
             <div className="mb-3 font-semibold">Latest Annotated Biopsy</div>
             <img
-              src={`http://localhost:8000${latestBiopsy}`}
+              src={latestBiopsy} // Direct S3 URL
               alt="Biopsy"
-              className="max-h-72 max-w-full object-contain rounded-lg border"
+              className="max-h-72 w-full object-contain rounded-lg border"
             />
           </div>
         ) : (
@@ -148,9 +147,9 @@ const PatientMonitoring = () => {
           <div>
             <div className="mb-3 font-semibold">Latest Annotated Mammography</div>
             <img
-              src={`http://localhost:8000${latestMammo}`}
+              src={latestMammo} // Direct S3 URL
               alt="Mammography"
-              className="max-h-72 max-w-full object-contain rounded-lg border"
+              className="max-h-72 w-full object-contain rounded-lg border"
             />
           </div>
         ) : (
@@ -182,49 +181,49 @@ const PatientMonitoring = () => {
         />
 
         {results && (
+          <div>
+            <span className="font-semibold">Has Cancer:</span>{' '}
+            {results.is_cancerous ? 'Yes' : 'No'}
+          </div>
+        )}
+
+        {analysis && (
+          <>
+            <div>
+              <span className="font-semibold">Change in Area:</span>{' '}
+              {analysis.change_in_area_percent?.toFixed(2) || 'N/A'} %
+            </div>
+            <div>
+              <span className="font-semibold">IoU:</span>{' '}
+              {analysis.iou ? analysis.iou.toFixed(3) : 'N/A'}
+            </div>
+            <div>
+              <span className="font-semibold">Aspect Ratio:</span>{' '}
+              Prev: {analysis.aspect_ratios?.previous?.toFixed(3) || 'N/A'} | Last:{' '}
+              {analysis.aspect_ratios?.last?.toFixed(3) || 'N/A'}
+            </div>
+            <div>
+              <span className="font-semibold">Diameter:</span>{' '}
+              Prev: {analysis.diameters?.previous?.toFixed(2) || 'N/A'} px | Last:{' '}
+              {analysis.diameters?.last?.toFixed(2) || 'N/A'} px
+            </div>
+            <div>
+              <span className="font-semibold">Centroid Shift:</span>{' '}
+              {analysis.centroid_shift?.toFixed(2) || 'N/A'} px
+            </div>
+            {analysis.centroids && (
               <div>
-                <span className="font-semibold">Has Cancer:</span>{' '}
-                {results.is_cancerous ? 'Yes' : 'No'}
+                <span className="font-semibold">Centroids:</span>{' '}
+                Prev: ({analysis.centroids.previous[0].toFixed(1)}, {analysis.centroids.previous[1].toFixed(1)}) | Last:{' '}
+                ({analysis.centroids.last[0].toFixed(1)}, {analysis.centroids.last[1].toFixed(1)})
               </div>
             )}
-
-            {analysis && (
-              <>
-                <div>
-                  <span className="font-semibold">Change in Area:</span>{' '}
-                  {analysis.change_in_area_percent?.toFixed(2)} %
-                </div>
-                <div>
-                  <span className="font-semibold">IoU:</span>{' '}
-                  {analysis.iou ? analysis.iou.toFixed(3) : 'N/A'}
-                </div>
-                <div>
-                  <span className="font-semibold">Aspect Ratio:</span>{' '}
-                  Prev: {analysis.aspect_ratios?.previous?.toFixed(3)} | Last:{' '}
-                  {analysis.aspect_ratios?.last?.toFixed(3)}
-                </div>
-                <div>
-                  <span className="font-semibold">Diameter:</span>{' '}
-                  Prev: {analysis.diameters?.previous?.toFixed(2)} px | Last:{' '}
-                  {analysis.diameters?.last?.toFixed(2)} px
-                </div>
-                <div>
-                  <span className="font-semibold">Centroid Shift:</span>{' '}
-                  {analysis.centroid_shift?.toFixed(2)} px
-                </div>
-                {analysis.centroids && (
-                  <div>
-                    <span className="font-semibold">Centroids:</span>{' '}
-                    Prev: ({analysis.centroids.previous[0].toFixed(1)}, {analysis.centroids.previous[1].toFixed(1)}) | Last:{' '}
-                    ({analysis.centroids.last[0].toFixed(1)}, {analysis.centroids.last[1].toFixed(1)})
-                  </div>
-                )}
-                <div className="text-xs text-gray-500 mt-2">
-                  Last Scan: {analysis.last_timestamp} <br />
-                  Previous Scan: {analysis.prev_timestamp}
-                </div>
-              </>
-            )}
+            <div className="text-xs text-gray-500 mt-2">
+              Last Scan: {analysis.last_timestamp} <br />
+              Previous Scan: {analysis.prev_timestamp}
+            </div>
+          </>
+        )}
 
         <button
           className="btn-secondary w-full mt-4"
