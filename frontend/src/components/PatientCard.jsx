@@ -21,7 +21,7 @@ export default function PatientCard({ p }) {
 
   return (
     <Link
-      to={`/patient/${p.patient_id}`}
+      to={`/monitor/${p.patient_id}`}
       className="card p-4 hover:shadow-md transition block"
     >
       <img
