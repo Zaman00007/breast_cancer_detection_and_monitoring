@@ -3,8 +3,8 @@ import axios from 'axios';
 import { useNavigate, useParams } from 'react-router-dom';
 
 const PatientMonitoring = () => {
-  const { patientId: paramId } = useParams(); // Get patientId from URL
-  const [patientId, setPatientId] = useState(paramId || ''); // initialize state with param
+  const { patientId: paramId } = useParams(); 
+  const [patientId, setPatientId] = useState(paramId || '');
   const [image, setImage] = useState(null);
   const [latestBiopsy, setLatestBiopsy] = useState(null);
   const [latestMammo, setLatestMammo] = useState(null);
@@ -100,7 +100,6 @@ const PatientMonitoring = () => {
 
   return (
     <div className="grid md:grid-cols-2 gap-6 p-6 font-sans bg-gray-50 min-h-screen">
-      {/* Left Panel */}
       <div className="card p-4 flex flex-col space-y-6">
         <div>
           <div className="mb-3 font-semibold">Upload Mammography Image</div>
@@ -171,7 +170,6 @@ const PatientMonitoring = () => {
         )}
       </div>
 
-      {/* Right Panel */}
       <div className="card p-4 flex flex-col justify-between">
         <input
           name="patientId"

@@ -27,7 +27,7 @@ export default function Home() {
     setMsg('')
     try {
       const r = await axios.get('http://localhost:8000/patients', {
-        params: { patient_id: q }   // 🔹 use patient_id instead of search
+        params: { patient_id: q } 
       })
       setResults(r.data)
       if (q && r.data.length === 0) setMsg('No patient record found')
